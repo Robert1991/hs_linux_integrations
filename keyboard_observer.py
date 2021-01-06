@@ -9,8 +9,6 @@ from ha_mqtt import connect_mqtt_client
 from activity_observation import find_event_file
 from activity_observation import observe
 
-print(sys.argv)
-
 def publish_state_observed():
     if not client.is_connected():
         client.reconnect()
