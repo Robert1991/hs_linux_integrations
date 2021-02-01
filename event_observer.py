@@ -27,8 +27,8 @@ with open(sys.argv[1]) as configuration_file:
   client = connect_mqtt_client(config_data["connection_data"], config_data["login"]) 
   auto_configure_motion_sensor(client, config_data, observer_config)
 
-  keyboard_event_file = find_event_file(observer_config["observed_dev_event_id"])
-  keyboard_event_type = observer_config["observed_dev_event_type"]
+  event_file = find_event_file(observer_config["observed_dev_event_id"])
+  event_type = observer_config["observed_dev_event_type"]
 
-  observe(keyboard_event_file, keyboard_event_type, publish_state_observed)
+  observe(event_file, event_type, publish_state_observed)
   

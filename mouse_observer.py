@@ -22,11 +22,12 @@ if len(sys.argv) != 2:
 
 with open(sys.argv[1]) as configuration_file:
   config_data = json.load(configuration_file)
-  state_topic = create_state_topic(config_data, "mouse_observer")
+  sensor_data = next(filter(lambda x: x["type"] == "mouse_observer", config_data["sensors"]))
+  state_topic = create_state_topic(config_data, sensor_data)
   
   client = connect_mqtt_client(config_data["connection_data"], config_data["login"]) 
-  auto_configure_motion_sensor(client, config_data, "mouse_observer")
+  auto_configure_motion_sensor(client, config_data, sensor_data)
 
-  mouse_event_file = find_event_file(config_data["mouse_observer"]["observed_dev_event_id"])
-  mouse_event_type = config_data["mouse_observer"]["observed_dev_event_type"]
+  mouse_event_file = find_event_file(sensor_data["observed_dev_event_id"])
+  mouse_event_type = sensor_data["observed_dev_event_type"]
   observe(mouse_event_file, mouse_event_type, publish_state_observed)

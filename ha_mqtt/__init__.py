@@ -4,11 +4,14 @@ import paho.mqtt.client as mqtt
 def _create_device_homeassistant_path(config_data, device_config):
     return config_data["hs_autoconfigure_prefix"] + "/" + device_config["device_type"] + "/" + device_config["name"]
 
-def create_state_topic(config_data, device_key):
-    return _create_device_homeassistant_path(config_data, device_key) + "/state"
+def _create_attributes_topic(config_data, device_data):
+    return _create_device_homeassistant_path(config_data, device_data) + "/attributes"
 
-def _create_command_topic(config_data, device_key):
-    return _create_device_homeassistant_path(config_data, device_key) + "/set"
+def create_state_topic(config_data, device_data):
+    return _create_device_homeassistant_path(config_data, device_data) + "/state"
+
+def _create_command_topic(config_data, device_data):
+    return _create_device_homeassistant_path(config_data, device_data) + "/set"
 
 def _configure_device(client, auto_configure_topic, auto_config_data):
     auto_configure_json_data = json.dumps(auto_config_data)
@@ -16,27 +19,42 @@ def _configure_device(client, auto_configure_topic, auto_config_data):
     print("Data: " + json.dumps(auto_configure_json_data))
     client.publish(auto_configure_topic, auto_configure_json_data)
 
-def auto_configure_switch(client, config_data, switch_key):
-    auto_config_data = {"unique_id": config_data[switch_key]["id"],
-            "name": config_data[switch_key]["name"],
-            "state_topic": create_state_topic(switch_key, switch_key),
-            "command_topic": _create_command_topic(switch_key, switch_key),
-            "device_class" : config_data[switch_key]["device_class"],
+def auto_configure_switch(client, config_data, switch_data):
+    auto_config_data = {"unique_id": switch_data["id"],
+            "name": switch_data["name"],
+            "state_topic": create_state_topic(config_data, switch_data),
+            "command_topic": _create_command_topic(config_data, switch_data),
+            "device_class" : switch_data["device_class"],
             "device": {
                 "ids": [config_data["device_info"]["id"]],
                 "model": config_data["device_info"]["type"],
                 "name": config_data["device_info"]["name"],
                 "sw_version": config_data["device_info"]["firmware_version"]
             }}
-    auto_configure_topic = _create_device_homeassistant_path(config_data, switch_key) + "/config"
+    auto_configure_topic = _create_device_homeassistant_path(config_data, switch_data) + "/config"
     _configure_device(client, auto_configure_topic, auto_config_data)
 
-def auto_configure_motion_sensor(client, config_data, device_config):
-    auto_config_data = {"unique_id": device_config["id"],
-            "name": device_config["name"],
-            "state_topic": create_state_topic(config_data, device_config),
-            "off_delay" : device_config["off_delay"],
-            "device_class" : device_config["device_class"],
+def auto_configure_sensor(client, config_data, sensor_data):
+    auto_config_data = {"unique_id": sensor_data["id"],
+            "name": sensor_data["name"],
+            "value_template": sensor_data["value_template"],
+            "state_topic": create_state_topic(config_data, sensor_data),
+            "json_attributes_topic": _create_attributes_topic(config_data, sensor_data),
+            "device": {
+                "ids": [config_data["device_info"]["id"]],
+                "model": config_data["device_info"]["type"],
+                "name": config_data["device_info"]["name"],
+                "sw_version": config_data["device_info"]["firmware_version"],
+            }}
+    auto_configure_topic = _create_device_homeassistant_path(config_data, sensor_data) + "/config"
+    _configure_device(client, auto_configure_topic, auto_config_data)
+
+def auto_configure_motion_sensor(client, config_data, sensor_key):
+    auto_config_data = {"unique_id": config_data["id"],
+            "name": config_data["name"],
+            "state_topic": create_state_topic(config_data, sensor_key),
+            "off_delay" : config_data["off_delay"],
+            "device_class" : config_data["device_class"],
             "device": {
                 "ids": [config_data["device_info"]["id"]],
                 "model": config_data["device_info"]["type"],
