@@ -27,12 +27,6 @@
             "observed_dev_event_type" : 1
         },
         {
-            "type" : "storage_sensor",
-            "id" : "muNbYD",
-            "name" : "rpn_home_server_storage_sensor",
-            "device_type" : "sensor"
-        },
-        {
             "type" : "mouse_observer",
             "id" : "Ev5NSC",
             "name" : "lenovo_new_gen_mouse_moved",
@@ -42,18 +36,5 @@
             "observed_dev_event_id" : "17",
             "observed_dev_event_type" : 2
         }
-    ],
-    "switches" : [
-        {
-            "type" : "suspend_switch",
-            "id" : "HzHWQJ",
-            "name" : "lenovo_new_gen_suspend_switch",
-            "device_type" : "switch"
-        },
-        {
-            "type" : "backup_switch",
-            "id" : "bydjyj",
-            "name" : "lenovo_new_gen_backup_switch_switch",
-            "device_type" : "switch"
-        }
+    ]
 }
