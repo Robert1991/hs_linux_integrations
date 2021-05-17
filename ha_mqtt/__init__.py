@@ -49,19 +49,19 @@ def auto_configure_sensor(client, config_data, sensor_data):
     auto_configure_topic = _create_device_homeassistant_path(config_data, sensor_data) + "/config"
     _configure_device(client, auto_configure_topic, auto_config_data)
 
-def auto_configure_motion_sensor(client, config_data, sensor_key):
-    auto_config_data = {"unique_id": config_data["id"],
-            "name": config_data["name"],
-            "state_topic": create_state_topic(config_data, sensor_key),
-            "off_delay" : config_data["off_delay"],
-            "device_class" : config_data["device_class"],
+def auto_configure_motion_sensor(client, config_data, sensor_data):
+    auto_config_data = {"unique_id": sensor_data["id"],
+            "name": sensor_data["name"],
+            "state_topic": create_state_topic(config_data, sensor_data),
+            "off_delay" : sensor_data["off_delay"],
+            "device_class" : sensor_data["device_class"],
             "device": {
                 "ids": [config_data["device_info"]["id"]],
                 "model": config_data["device_info"]["type"],
                 "name": config_data["device_info"]["name"],
                 "sw_version": config_data["device_info"]["firmware_version"]
             }}
-    auto_configure_topic = _create_device_homeassistant_path(config_data, sensor_key) + "/config"
+    auto_configure_topic = _create_device_homeassistant_path(config_data, sensor_data) + "/config"
     _configure_device(client, auto_configure_topic, auto_config_data)
 
 def connect_mqtt_client(connection_data, auth_data=None):
