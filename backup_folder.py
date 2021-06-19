@@ -25,7 +25,11 @@ def delete_files_in_folder_older_than(folder_path, days = 4):
 def zipdir(directory_path, ziph):
     for root, dirs, files in walk(directory_path):
         for file in files:
-            ziph.write(path.join(root, file), path.relpath(path.join(root, file), path.join(directory_path, '..')))
+            try:
+                ziph.write(path.join(root, file), path.relpath(path.join(root, file), path.join(directory_path, '..')))
+            except:
+                print("Unexpected error:", sys.exc_info()[0])
+
 
 def create_backup_zip_file_name(source_folder):
     time_stamp = datetime.now().strftime('%Y%m%dT%H%M%S')
