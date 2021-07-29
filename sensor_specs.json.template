@@ -16,6 +16,12 @@
     },
     "sensors" : [
         {
+            "type": "docker_update_sensor",
+            "id": "i5EucN",
+            "name": "portainer_update_sensor",
+            "image_name": "portainer/portainer"
+        },
+        {
             "type" : "keyboard_observer",
             "id" : "Rk2Rvk",
             "name" : "lenovo_new_gen_key_was_pressed",
