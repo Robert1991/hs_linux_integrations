@@ -10,6 +10,9 @@ def _create_device_homeassistant_path(config_data, device_config):
 def create_attributes_topic(config_data, device_data):
     return _create_device_homeassistant_path(config_data, device_data) + "/attributes"
 
+def create_availability_topic(config_data, device_data):
+    return _create_device_homeassistant_path(config_data, device_data) + "/availability"
+
 
 def create_state_topic(config_data, device_data):
     return _create_device_homeassistant_path(config_data, device_data) + "/state"
@@ -53,6 +56,11 @@ def auto_configure_docker_update_sensor(client, config_data, sensor_data, expire
                         "payload_on": "True",
                         "state_topic": create_state_topic(config_data, sensor_data),
                         "json_attributes_topic": create_attributes_topic(config_data, sensor_data),
+                        "availability" : [
+                            { "topic" : create_availability_topic(config_data, sensor_data),
+                               "payload_available" : "available",
+                               "payload_not_available" : "unavailable"}
+                        ],
                         "device": {
         "ids": [config_data["device_info"]["id"]],
         "model": config_data["device_info"]["type"],
