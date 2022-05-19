@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# cleaning old backups
+# extend /etc/sysupgrade.conf to include files into backup
+
 echo "Will delete old backups:"
 find /media/extern/backups/router/ -mindepth 1 -mtime +5 -print
 find /media/extern/backups/router/ -mindepth 1 -mtime +5 -delete
