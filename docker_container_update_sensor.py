@@ -12,8 +12,9 @@ from ha_mqtt import create_attributes_topic
 import time
 import json
 
-logging.basicConfig(filename='/var/log/private/docker_update_sensor.log',
+logging.basicConfig(filename='/var/log/docker_update_sensor.log',
                     format='%(asctime)s %(message)s', level=logging.INFO)
+
 
 def _fetch_latest_release_version_from_last_tag(git_repository):
     request_url = "https://api.github.com/repos/" + \
@@ -21,21 +22,23 @@ def _fetch_latest_release_version_from_last_tag(git_repository):
     request_reponse = requests.get(request_url)
     if request_reponse.status_code == 200:
         response_object = request_reponse.json()
-        return { "tag" : response_object[0]["name"]}
+        return {"tag": response_object[0]["name"]}
     logging.error("latest tag request " + request_url +
                   " failed with: \n" + str(request_reponse.text))
     return None
 
+
 def _fetch_latest_release_version_tag(git_repository):
     request_url = "https://api.github.com/repos/" + \
         git_repository + "/releases/latest"
-    request_reponse = requests.get(request_url)
-    if request_reponse.status_code == 200:
-        response_object = request_reponse.json()
-        return { "tag" : response_object["name"], "release_notes" : response_object["html_url"], "published_at" : response_object["published_at"]}
+    request_response = requests.get(request_url)
+    if request_response.status_code == 200:
+        response_object = request_response.json()
+        return {"tag": response_object["name"], "release_notes": response_object["html_url"], "published_at": response_object["published_at"]}
     logging.error("latest release request " + request_url +
-                  " failed with: \n" + str(request_reponse.text))
+                  " failed with: \n" + str(request_response.text))
     return None
+
 
 def _fetch_api_token(image_name):
     request_url = "https://auth.docker.io/token?scope=repository:" + \
@@ -163,7 +166,6 @@ def wait_for_sensor_autoconfigure(config_data, failover_timeout=5):
             logging.error(
                 "Unexpected error while auto configuring:", sys.exc_info())
             time.sleep(failover_timeout)
-
 
 
 if len(sys.argv) != 2:
