@@ -100,17 +100,22 @@ def _new_image_available(image_name):
 
 def _fetch_version_meta_data_from_github(git_meta, mqtt_data):
     if "latest_release" in git_meta.keys():
-        git_meta_data = _fetch_latest_release_version_tag(git_meta["latest_release"])
-        mqtt_data["tag"] = git_meta_data["tag"]
-        mqtt_data["release_notes"] = git_meta_data["release_notes"]
-        mqtt_data["published_at"] = git_meta_data["published_at"]
-        return mqtt_data
+        git_meta_data = _fetch_latest_release_version_tag(
+            git_meta["latest_release"])
+        if git_meta_data:
+            mqtt_data["tag"] = git_meta_data["tag"]
+            mqtt_data["release_notes"] = git_meta_data["release_notes"]
+            mqtt_data["published_at"] = git_meta_data["published_at"]
+            return mqtt_data
     elif "latest_tag" in git_meta.keys():
-        git_meta_data = _fetch_latest_release_version_from_last_tag(git_meta["latest_tag"])
-        mqtt_data["tag"] = git_meta_data["tag"]
-        return mqtt_data
+        git_meta_data = _fetch_latest_release_version_from_last_tag(
+            git_meta["latest_tag"])
+        if git_meta_data:
+            mqtt_data["tag"] = git_meta_data["tag"]
+            return mqtt_data
     logging.error("invalid git meta config: " + str(git_meta))
     return None
+
 
 def mqtt_publish(topic, data):
     try:
@@ -121,8 +126,17 @@ def mqtt_publish(topic, data):
     except:
         logging.error("Unexpected error:", sys.exc_info()[0])
 
+
 def get_sensors(config_data):
     return [sensor for sensor in config_data["sensors"] if sensor["type"] == "docker_update_sensor"]
+
+
+def set_sensors_offline(config_data):
+    for sensor in get_sensors(config_data):
+        logging.info("Setting " + sensor["name"] + " offline")
+        sensor_availability_topic = create_availability_topic(
+            config_data, sensor)
+        mqtt_publish(sensor_availability_topic, "unavailable")
 
 
 def observe_container_versions(config_data, time_out=1900, in_between_request_timeout=5):
@@ -131,7 +145,8 @@ def observe_container_versions(config_data, time_out=1900, in_between_request_ti
             sensor_state_topic = create_state_topic(config_data, sensor)
             sensor_attributes_topic = create_attributes_topic(
                 config_data, sensor)
-            sensor_availability_topic = create_availability_topic(config_data, sensor)
+            sensor_availability_topic = create_availability_topic(
+                config_data, sensor)
 
             logging.info("Checking for updates for: " + sensor["name"])
             image_available, image_digest = _new_image_available(
@@ -141,15 +156,22 @@ def observe_container_versions(config_data, time_out=1900, in_between_request_ti
                              "image": sensor["image_name"],
                              "digest": image_digest}
                 if "git_meta" in sensor.keys():
-                    logging.info("Fetching git release meta data: " + sensor["name"])
-                    mqtt_data = _fetch_version_meta_data_from_github(sensor["git_meta"], mqtt_data)
-                mqtt_publish(sensor_availability_topic, "available")
-                mqtt_publish(sensor_state_topic, json.dumps(mqtt_data))
-                mqtt_publish(sensor_attributes_topic, json.dumps(mqtt_data))
-                time.sleep(in_between_request_timeout)
+                    logging.info(
+                        "Fetching git release meta data: " + sensor["name"])
+                    mqtt_data = _fetch_version_meta_data_from_github(
+                        sensor["git_meta"], mqtt_data)
+                if mqtt_data:
+                    mqtt_publish(sensor_availability_topic, "available")
+                    mqtt_publish(sensor_state_topic, json.dumps(mqtt_data))
+                    mqtt_publish(sensor_attributes_topic,
+                                 json.dumps(mqtt_data))
+                    time.sleep(in_between_request_timeout)
+                else:
+                    mqtt_publish(sensor_availability_topic, "unavailable")
             else:
                 mqtt_publish(sensor_availability_topic, "unavailable")
-        logging.info("Sleeping for " + str(time_out) + " seconds before checking again...")
+        logging.info("Sleeping for " + str(time_out) +
+                     " seconds before checking again...")
         time.sleep(time_out)
 
 
@@ -175,4 +197,7 @@ if len(sys.argv) != 2:
 with open(sys.argv[1]) as configuration_file:
     config_data = json.load(configuration_file)
     client = wait_for_sensor_autoconfigure(config_data)
-    observe_container_versions(config_data)
+    try:
+        observe_container_versions(config_data)
+    except SystemExit:
+        set_sensors_offline(config_data)
